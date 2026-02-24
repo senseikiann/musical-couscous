@@ -12,7 +12,8 @@ _estack = 0x20005000
 .section .text
 .thumb_func
 .global Reset_Handler
-
+.extern SystemInit
 Reset_Handler:
+    bl SystemInit
     bl main
     b .
