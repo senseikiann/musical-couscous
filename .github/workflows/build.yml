@@ -42,8 +42,7 @@ jobs:
         EOF
 
         arm-none-eabi-gcc \
-        Core/Src/main.c \
-        Core/Src/timer.c \
+        Core/Src/main.c  \
         Core/Src/system_stm32f1xx.c \
         Core/Startup/*.s \
         -T linker.ld \
