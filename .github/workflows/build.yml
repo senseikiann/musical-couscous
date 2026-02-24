@@ -26,6 +26,7 @@ jobs:
           -T linker.ld \
           Core/Src/main.c \
           Core/Startup/startup_stm32f103c8.s \
+          Core/Src/system_stm32f1xx.c
           -o firmware.elf
 
           arm-none-eabi-objcopy -O binary firmware.elf firmware.bin
