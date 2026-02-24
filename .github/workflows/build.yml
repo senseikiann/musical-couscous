@@ -1,0 +1,37 @@
+name: Build STM32
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Toolchain
+        run: sudo apt update && sudo apt install -y gcc-arm-none-eabi
+
+      - name: Build
+        run: |
+          arm-none-eabi-gcc \
+          -mcpu=cortex-m3 \
+          -mthumb \
+          -O2 \
+          -nostdlib \
+          -ffreestanding \
+          -T linker.ld \
+          Core/Src/main.c \
+          Core/Startup/startup_stm32f103c8.s \
+          -o firmware.elf
+
+          arm-none-eabi-objcopy -O binary firmware.elf firmware.bin
+
+      - name: Upload Firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: firmware.bin
