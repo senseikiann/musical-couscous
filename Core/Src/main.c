@@ -8,20 +8,13 @@ void delay(volatile unsigned int t){
 }
 
 int main(void){
-
-    // فعال کردن کلاک GPIOC
     RCC_APB2ENR |= (1 << 4);
-
-    // تنظیم PC13 به عنوان خروجی
     GPIOC_CRH &= ~(0xF << 20);
     GPIOC_CRH |=  (0x2 << 20);
 
     while(1){
-        // LED روشن
         GPIOC_BRR = (1 << 13);
         delay(800000);
-
-        // LED خاموش
         GPIOC_BSRR = (1 << 13);
         delay(800000);
     }
