@@ -1,35 +1,66 @@
-name: Build STM32
+name: STM32 Build
 
 on:
   push:
-  workflow_dispatch:
+  pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v3
 
-      - name: Install Toolchain
-        run: sudo apt update && sudo apt install -y gcc-arm-none-eabi
+    - name: Install ARM GCC
+      run: |
+        sudo apt update
+        sudo apt install -y gcc-arm-none-eabi binutils-arm-none-eabi
 
-      - name: Build Firmware
-        run: |
-          mkdir build
-          arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -O2 -nostdlib -ffreestanding -T linker.ld \
-          Core/Src/main.c \
-          Core/Src/system_stm32f1xx.c \
-          Core/Startup/startup_stm32f103c8.s \
-          -o build/firmware.elf
+    - name: Build Firmware
+      run: |
+        cat > linker.ld << 'EOF'
+        MEMORY
+        {
+          FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 64K
+          RAM (rwx)   : ORIGIN = 0x20000000, LENGTH = 20K
+        }
 
-          arm-none-eabi-objcopy -O binary build/firmware.elf build/firmware.bin
+        _estack = 0x20005000;
 
-          arm-none-eabi-size build/firmware.elf
+        SECTIONS
+        {
+          .text :
+          {
+            KEEP(*(.isr_vector))
+            *(.text*)
+            *(.rodata*)
+          } > FLASH
 
-      - name: Upload Firmware
-        uses: actions/upload-artifact@v4
-        with:
-          name: firmware
-          path: build/firmware.bin
+          .data :
+          {
+            *(.data*)
+          } > RAM
+
+          .bss :
+          {
+            *(.bss*)
+            *(COMMON)
+          } > RAM
+        }
+        EOF
+
+        arm-none-eabi-gcc main.c \
+        -T linker.ld \
+        -nostdlib \
+        -mcpu=cortex-m3 \
+        -mthumb \
+        -Wl,--gc-sections \
+        -o firmware.elf
+
+        arm-none-eabi-objcopy -O ihex firmware.elf firmware.hex
+
+    - name: Upload HEX
+      uses: actions/upload-artifact@v4
+      with:
+        name: firmware
+        path: firmware.hex
