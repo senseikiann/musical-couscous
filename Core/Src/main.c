@@ -21,9 +21,13 @@ void TIM2_IRQHandler(void)
     }
 }
 
-void timer2_init(void)
+int main(void)
 {
+    RCC_APB2ENR |= (1 << 4);
     RCC_APB1ENR |= (1 << 0);
+
+    GPIOC_CRH &= ~(0xF << 20);
+    GPIOC_CRH |=  (0x2 << 20);
 
     TIM2_PSC = 7200 - 1;
     TIM2_ARR = 10000 - 1;
@@ -33,18 +37,8 @@ void timer2_init(void)
     NVIC_ISER0 |= (1 << 28);
 
     TIM2_CR1 |= 1;
-}
 
-int main(void)
-{
-    RCC_APB2ENR |= (1 << 4);
-
-    GPIOC_CRH &= ~(0xF << 20);
-    GPIOC_CRH |=  (0x2 << 20);
-
-    timer2_init();
-
-    while (1)
+    while(1)
     {
     }
 }
