@@ -31,7 +31,6 @@ jobs:
         {
           .text :
           {
-            KEEP(*(.isr_vector))
             *(.text*)
             *(.rodata*)
           } > FLASH
@@ -49,7 +48,7 @@ jobs:
         }
         EOF
 
-        arm-none-eabi-gcc main.c \
+        arm-none-eabi-gcc Core/Src/main.c \
         -T linker.ld \
         -nostdlib \
         -mcpu=cortex-m3 \
