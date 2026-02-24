@@ -2,24 +2,12 @@
 #define RCC_APB1ENR (*(volatile unsigned int*)0x4002101C)
 
 #define GPIOC_CRH   (*(volatile unsigned int*)0x40011004)
-#define GPIOC_ODR   (*(volatile unsigned int*)0x4001100C)
+#define GPIOC_ODR    (*(volatile unsigned int*)0x4001100C)
 
-#define TIM2_CR1    (*(volatile unsigned int*)0x40000000)
-#define TIM2_DIER   (*(volatile unsigned int*)0x4000000C)
-#define TIM2_SR     (*(volatile unsigned int*)0x40000010)
-#define TIM2_PSC    (*(volatile unsigned int*)0x40000028)
-#define TIM2_ARR    (*(volatile unsigned int*)0x4000002C)
-
-#define NVIC_ISER0  (*(volatile unsigned int*)0xE000E100)
-
-void TIM2_IRQHandler(void)
-{
-    if (TIM2_SR & 1)
-    {
-        TIM2_SR &= ~1;
-        GPIOC_ODR ^= (1 << 13);
-    }
-}
+#define TIM2_CR1 (*(volatile unsigned int*)0x40000000)
+#define TIM2_SR  (*(volatile unsigned int*)0x40000010)
+#define TIM2_PSC (*(volatile unsigned int*)0x40000028)
+#define TIM2_ARR (*(volatile unsigned int*)0x4000002C)
 
 int main(void)
 {
@@ -32,13 +20,14 @@ int main(void)
     TIM2_PSC = 7200 - 1;
     TIM2_ARR = 10000 - 1;
 
-    TIM2_DIER |= 1;
-
-    NVIC_ISER0 |= (1 << 28);
-
     TIM2_CR1 |= 1;
 
     while(1)
     {
+        if(TIM2_SR & 1)
+        {
+            TIM2_SR &= ~1;
+            GPIOC_ODR ^= (1 << 13);
+        }
     }
 }
