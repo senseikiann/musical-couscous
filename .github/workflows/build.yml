@@ -11,12 +11,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install ARM GCC
+    - name: Install Toolchain
       run: |
         sudo apt update
         sudo apt install -y gcc-arm-none-eabi binutils-arm-none-eabi
 
-    - name: Build Firmware
+    - name: Build Project
       run: |
         cat > linker.ld << 'EOF'
         MEMORY
@@ -31,28 +31,25 @@ jobs:
         {
           .text :
           {
+            *(.isr_vector)
             *(.text*)
             *(.rodata*)
           } > FLASH
 
-          .data :
-          {
-            *(.data*)
-          } > RAM
-
-          .bss :
-          {
-            *(.bss*)
-            *(COMMON)
-          } > RAM
+          .data : { *(.data*) } > RAM
+          .bss  : { *(.bss*) *(COMMON) } > RAM
         }
         EOF
 
-        arm-none-eabi-gcc Core/Src/main.c \
+        arm-none-eabi-gcc \
+        Core/Src/main.c \
+        Core/Src/timer.c \
+        Core/Src/system_stm32f1xx.c \
+        Core/Startup/*.s \
         -T linker.ld \
-        -nostdlib \
         -mcpu=cortex-m3 \
         -mthumb \
+        -nostdlib \
         -Wl,--gc-sections \
         -o firmware.elf
 
